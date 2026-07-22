@@ -12,11 +12,33 @@ REPORTS_DIR = PROJECT_ROOT / "reports"
 CONFIG_DIR = PROJECT_ROOT / "config"
 
 DEFAULT_MAILBOX_FOLDERS = [
+    "Postvak IN",
     "AANVRAAG WERKOPDRACHT",
+    "AANVRAAG WERKOPDRACHT/annulatie werkopdracht",
     "THUIS.GENT",
     "BRANDWEER",
     "MOBILITEIT",
     "FEESTELIJKHEDEN",
+]
+
+WORKPC_SAMPLE_FOLDERS = [
+    "Postvak IN",
+    "AANVRAAG WERKOPDRACHT",
+    "AANVRAAG WERKOPDRACHT/annulatie werkopdracht",
+    "THUIS.GENT",
+    "BRANDWEER",
+    "BRANDWEER/Facturatie/VS01-2026",
+    "BRANDWEER/Facturatie/VS02-2026",
+    "BRANDWEER/Facturatie/VS03-2025",
+    "MOBILITEIT",
+    "MOBILITEIT/2026",
+    "MOBILITEIT/2026/Facturatie/VS01",
+    "MOBILITEIT/2026/Facturatie/VS02",
+    "FEESTELIJKHEDEN",
+    "FEESTELIJKHEDEN/NIEUW/Opdrachten",
+    "DEPANNAGES",
+    "DEPANNAGES/Aanvraag WB",
+    "DEPANNAGES/Werkbon SG",
 ]
 
 
@@ -69,5 +91,6 @@ def load_config() -> AppConfig:
         mailbox_folders=list(raw.get("MAILBOX_FOLDERS", DEFAULT_MAILBOX_FOLDERS)),
         mailbox_profiles=profiles,
     )
+
 
 

@@ -1,0 +1,27 @@
+﻿{
+    "READ_ONLY_MODE": true,
+    "DEMO_MODE": false,
+    "ALLOW_REAL_OUTLOOK": true,
+    "SHARED_MAILBOX_NAME": "BE-Wetteren-stadgent (EQUANS BELUX)",
+    "MAX_MAILS_PER_FOLDER": 100,
+    "MAILBOX_FOLDERS": [
+        "Postvak IN",
+        "AANVRAAG WERKOPDRACHT",
+        "AANVRAAG WERKOPDRACHT/annulatie werkopdracht",
+        "THUIS.GENT",
+        "BRANDWEER",
+        "BRANDWEER/Facturatie/VS01-2026",
+        "BRANDWEER/Facturatie/VS02-2026",
+        "BRANDWEER/Facturatie/VS03-2025",
+        "MOBILITEIT",
+        "MOBILITEIT/2026",
+        "MOBILITEIT/2026/Facturatie/VS01",
+        "MOBILITEIT/2026/Facturatie/VS02",
+        "FEESTELIJKHEDEN",
+        "FEESTELIJKHEDEN/NIEUW/Opdrachten",
+        "DEPANNAGES",
+        "DEPANNAGES/Aanvraag WB",
+        "DEPANNAGES/Werkbon SG"
+    ],
+    "NOTE": "Werk-pc sample export. Strictly read-only. Exports local copies only."
+}

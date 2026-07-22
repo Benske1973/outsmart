@@ -1,4 +1,4 @@
-import logging
+﻿import logging
 from datetime import datetime
 from typing import Dict, Iterable, List
 
@@ -15,9 +15,10 @@ class OutlookUnavailable(RuntimeError):
 class OutlookReadOnlySource:
     """Read-only Outlook enumerator.
 
-    This class deliberately contains no write actions such as Move, Delete,
-    Send, Reply, Forward, category changes, draft creation, or folder edits.
-    Attachments are represented for export only.
+    No write actions are present: no Move, Delete, Send, Reply, Forward,
+    category changes, draft creation, folder edits, or message Save.
+    Attachment SaveAsFile is used only to copy attachments into the local
+    export package.
     """
 
     def __init__(self, profiles: Dict[str, Dict[str, str]], shared_mailbox_name: str = "") -> None:
@@ -41,7 +42,7 @@ class OutlookReadOnlySource:
         root = self._resolve_root(outlook)
         results: List[FolderScanResult] = []
         for folder_name in folder_names:
-            folder = self._find_folder(root, folder_name)
+            folder = self._find_folder_by_path(root, folder_name)
             if folder is None:
                 LOGGER.warning("Outlook folder not found, skipped: %s", folder_name)
                 results.append(FolderScanResult(folder_name=folder_name, profile=self.profiles.get(folder_name, {}), mails=[]))
@@ -57,6 +58,27 @@ class OutlookReadOnlySource:
             if str(store.Name).lower() == self.shared_mailbox_name.lower():
                 return store
         raise OutlookUnavailable(f"Shared mailbox not found: {self.shared_mailbox_name}")
+
+    def _find_folder_by_path(self, root, folder_path: str):
+        parts = [part.strip() for part in folder_path.replace("\\", "/").split("/") if part.strip()]
+        if len(parts) <= 1:
+            return self._find_folder(root, folder_path)
+        current = self._find_folder(root, parts[0])
+        for part in parts[1:]:
+            if current is None:
+                return None
+            current = self._find_direct_child(current, part)
+        return current
+
+    def _find_direct_child(self, folder, wanted_name: str):
+        wanted = wanted_name.lower()
+        try:
+            for child in folder.Folders:
+                if str(child.Name).lower() == wanted:
+                    return child
+        except Exception:
+            return None
+        return None
 
     def _find_folder(self, root, wanted_name: str):
         queue = [root]
@@ -85,10 +107,12 @@ class OutlookReadOnlySource:
             if getattr(item, "Class", None) != 43:
                 continue
             received_at = getattr(item, "ReceivedTime", None) or datetime.now()
-            attachments = [
-                AttachmentData(filename=str(att.FileName), content=b"")
-                for att in item.Attachments
-            ]
+            attachments = []
+            for att_index in range(1, int(item.Attachments.Count) + 1):
+                att = item.Attachments.Item(att_index)
+                attachment = AttachmentData(filename=str(att.FileName), content=b"")
+                setattr(attachment, "outlook_attachment", att)
+                attachments.append(attachment)
             mails.append(MailItemData(
                 source_folder=folder_name,
                 entry_id=str(getattr(item, "EntryID", "")),

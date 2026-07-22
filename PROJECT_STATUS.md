@@ -33,3 +33,11 @@
 [X] Werk-pc script: run_workpc_folder_discovery.bat
 [X] Rapportage naar reports/
 
+
+## v2.3.3 toegevoegd
+
+[X] Postvak IN opgenomen in werk-pc sample
+[X] Read-only mail sample export met bevestiging READONLY
+[X] Max 100 mails per geselecteerde map
+[X] Discovery rapporten toegevoegd aan .gitignore
+

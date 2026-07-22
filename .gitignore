@@ -9,3 +9,9 @@ cache/
 *.sqlite
 *.db
 .env
+
+reports/
+outlook_folder_discovery_*.json
+outlook_folder_discovery_*.md
+mailbox_export_*.zip
+mailbox_export_*/

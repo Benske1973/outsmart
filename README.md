@@ -61,3 +61,14 @@ run_workpc_folder_discovery.bat
 
 Deze stap lijst alleen Outlook-mappen op en wijzigt geen mailboxdata.
 
+
+## Werk-pc mail sample
+
+Na folder discovery kan je op de werk-pc een beperkte read-only sample export maken:
+
+``bat
+run_workpc_mail_sample.bat
+``
+
+Deze neemt Postvak IN mee en max. 100 mails per geselecteerde map. Upload de export niet naar GitHub.
+

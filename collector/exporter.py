@@ -1,4 +1,4 @@
-import json
+﻿import json
 import shutil
 import zipfile
 from datetime import datetime
@@ -117,3 +117,4 @@ class PortablePackageExporter:
             lines.append(f"- Document types: {analysis['document_types']}")
             lines.append("")
         return "\n".join(lines)
+
