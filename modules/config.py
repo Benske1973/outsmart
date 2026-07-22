@@ -1,4 +1,4 @@
-import json
+﻿import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List
@@ -8,6 +8,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = PROJECT_ROOT / "data"
 EXPORTS_DIR = PROJECT_ROOT / "exports"
 LOGS_DIR = PROJECT_ROOT / "logs"
+REPORTS_DIR = PROJECT_ROOT / "reports"
 CONFIG_DIR = PROJECT_ROOT / "config"
 
 DEFAULT_MAILBOX_FOLDERS = [
@@ -68,3 +69,5 @@ def load_config() -> AppConfig:
         mailbox_folders=list(raw.get("MAILBOX_FOLDERS", DEFAULT_MAILBOX_FOLDERS)),
         mailbox_profiles=profiles,
     )
+
+

@@ -50,3 +50,14 @@ run_tests.bat
 ## Werk-pc
 
 Later kan dezelfde collector naar de werk-pc gekopieerd worden. Echte Outlook-collectie blijft standaard uitgeschakeld en mag alleen read-only geactiveerd worden in de configuratie.
+
+## Werk-pc folder discovery
+
+Gebruik op de werk-pc eerst:
+
+``bat
+run_workpc_folder_discovery.bat
+``
+
+Deze stap lijst alleen Outlook-mappen op en wijzigt geen mailboxdata.
+

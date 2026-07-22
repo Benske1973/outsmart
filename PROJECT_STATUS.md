@@ -26,3 +26,10 @@
 [ ] OutSmart export importeren
 [ ] Mail naar werkbon vergelijking
 [ ] Automatische veldmapping
+
+## v2.3.2 toegevoegd
+
+[X] Read-only Outlook folder discovery
+[X] Werk-pc script: run_workpc_folder_discovery.bat
+[X] Rapportage naar reports/
+

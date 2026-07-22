@@ -1,6 +1,7 @@
-OutSmart Werkbon Assistent
+﻿OutSmart Werkbon Assistent
 
-Version: 2.3.1
+Version: 2.3.2
 Build: 2026-07-22
-Python: 3.12 supported
-Mode: READ-ONLY Data Collector, demo enabled by default
+Python: 3.12/3.13 supported
+Mode: READ-ONLY Data Collector + Outlook folder discovery
+
