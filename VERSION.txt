@@ -1,0 +1,6 @@
+OutSmart Werkbon Assistent
+
+Version: 2.3.1
+Build: 2026-07-22
+Python: 3.12 supported
+Mode: READ-ONLY Data Collector, demo enabled by default

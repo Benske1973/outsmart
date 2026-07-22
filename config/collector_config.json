@@ -1,0 +1,15 @@
+{
+    "READ_ONLY_MODE": true,
+    "DEMO_MODE": true,
+    "ALLOW_REAL_OUTLOOK": false,
+    "SHARED_MAILBOX_NAME": "",
+    "MAX_MAILS_PER_FOLDER": 25,
+    "MAILBOX_FOLDERS": [
+        "AANVRAAG WERKOPDRACHT",
+        "THUIS.GENT",
+        "BRANDWEER",
+        "MOBILITEIT",
+        "FEESTELIJKHEDEN"
+    ],
+    "NOTE": "Real Outlook collection is disabled by default. Enable only on the work PC after testing demo mode."
+}

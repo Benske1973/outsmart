@@ -1,0 +1,22 @@
+{
+    "AANVRAAG WERKOPDRACHT": {
+        "debiteur": "S.G-1",
+        "naam": "STAD.GENT (Thema)"
+    },
+    "THUIS.GENT": {
+        "debiteur": "S.G-2",
+        "naam": "THUISPUNTGENT"
+    },
+    "BRANDWEER": {
+        "debiteur": "S.G-3",
+        "naam": "HVZ Zone"
+    },
+    "MOBILITEIT": {
+        "debiteur": "S.G-4",
+        "naam": "STAD.GENT (Mobiliteit)"
+    },
+    "FEESTELIJKHEDEN": {
+        "debiteur": "S.G-5",
+        "naam": "STAD-GENT (FEE)"
+    }
+}
