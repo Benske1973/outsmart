@@ -15,3 +15,7 @@ outlook_folder_discovery_*.json
 outlook_folder_discovery_*.md
 mailbox_export_*.zip
 mailbox_export_*/
+
+outsmart_exports/
+browser_profile_outsmart/
+

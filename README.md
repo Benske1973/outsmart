@@ -116,3 +116,20 @@ run_outsmart_export_analysis.bat
 
 Deze analyse inventariseert per S.G.-debiteur gebouwen, adressen, eenheden en dropdownachtige waarden.
 
+
+## OutSmart Browser Discovery
+
+Installeer op de werk-pc:
+
+``bat
+install_workpc_requirements.bat
+``
+
+Start daarna:
+
+``bat
+run_outsmart_browser_discovery.bat
+``
+
+Deze tool inventariseert schermen, velden, tabellen en dropdowns. Output blijft lokaal in outsmart_exports/.
+

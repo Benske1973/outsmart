@@ -82,3 +82,11 @@
 [X] Inventarisatie gebouwen, adressen, eenheden en dropdownachtige waarden per debiteur
 [X] CSV met adres/gebouw/eenheid voorbeelden
 
+
+## v2.8.0 toegevoegd
+
+[X] OutSmart Browser Discovery met Playwright
+[X] Screenshots, HTML, velden, tabellen en dropdownopties
+[X] Lokale browserprofielmap voor handmatige login
+[X] Gevaarlijke acties worden vermeden in discovery
+

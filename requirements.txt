@@ -1,3 +1,5 @@
-# No required third-party packages for demo mode.
-# On the work PC, real Outlook collection can use pywin32:
-# pywin32>=306
+﻿# Demo/core uses Python standard library.
+# Work PC Outlook collector:
+pywin32>=306
+# OutSmart browser discovery:
+playwright>=1.45
