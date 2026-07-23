@@ -47,3 +47,9 @@
 [X] Configbestanden met UTF-8 BOM worden correct gelezen op Python 3.13
 [X] Werk-pc zonder lokale .venv blijft ondersteund via gewone python
 
+
+## v2.3.5 toegevoegd
+
+[X] Exportnamen ingekort en voorzien van hash tegen Windows-padlengteproblemen
+[X] Outlook-bijlagen worden read-only lokaal gekopieerd via SaveAsFile
+

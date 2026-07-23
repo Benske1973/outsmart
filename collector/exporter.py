@@ -1,7 +1,9 @@
-﻿import json
+﻿import hashlib
+import json
 import shutil
 import zipfile
 from datetime import datetime
+from pathlib import Path
 from typing import Dict, List
 
 from modules.config import EXPORTS_DIR
@@ -9,15 +11,30 @@ from modules.models import CollectorRunResult, FolderScanResult, MailItemData
 from modules.safety import READ_ONLY_GUARD
 
 
-def safe_name(value: str) -> str:
+def safe_name(value: str, max_len: int = 48, fallback: str = "item") -> str:
     allowed = []
-    for char in value:
+    for char in str(value or ""):
         if char.isalnum() or char in ("-", "_", "."):
             allowed.append(char)
         elif char.isspace():
             allowed.append("_")
-    result = "".join(allowed).strip("._")
-    return result[:80] or "item"
+    cleaned = "".join(allowed).strip("._") or fallback
+    digest = hashlib.sha1(str(value or fallback).encode("utf-8", errors="ignore")).hexdigest()[:8]
+    if len(cleaned) > max_len:
+        cleaned = cleaned[:max_len].rstrip("._")
+    return f"{cleaned}_{digest}"
+
+
+def safe_attachment_name(filename: str, index: int) -> str:
+    original = str(filename or f"attachment_{index}")
+    suffix = Path(original).suffix
+    suffix = suffix if len(suffix) <= 12 else ""
+    stem = Path(original).stem or f"attachment_{index}"
+    digest = hashlib.sha1(original.encode("utf-8", errors="ignore")).hexdigest()[:10]
+    safe_stem = safe_name(stem, max_len=36, fallback=f"attachment_{index}")
+    if safe_stem.endswith(f"_{digest[:8]}"):
+        safe_stem = safe_stem[:-(len(digest[:8]) + 1)]
+    return f"att_{index:03d}_{safe_stem}_{digest}{suffix}"
 
 
 class PortablePackageExporter:
@@ -36,7 +53,7 @@ class PortablePackageExporter:
         }
 
         for folder_result in folder_results:
-            folder_dir = export_dir / safe_name(folder_result.folder_name)
+            folder_dir = export_dir / safe_name(folder_result.folder_name, max_len=42, fallback="folder")
             folder_dir.mkdir(parents=True, exist_ok=True)
             folder_payload = {
                 "folder_name": folder_result.folder_name,
@@ -45,18 +62,15 @@ class PortablePackageExporter:
                 "mails": [],
             }
             for mail_index, mail in enumerate(folder_result.mails, start=1):
-                mail_dir = folder_dir / f"{mail_index:04d}_{safe_name(mail.subject)}"
+                mail_dir = folder_dir / f"mail_{mail_index:04d}_{safe_name(mail.subject, max_len=38, fallback='mail')}"
                 attachments_dir = mail_dir / "attachments"
                 attachments_dir.mkdir(parents=True, exist_ok=True)
                 (mail_dir / "body.txt").write_text(mail.body or "", encoding="utf-8")
                 metadata = self._mail_metadata(mail)
                 metadata["attachments"] = []
-                for attachment in mail.attachments:
-                    target = attachments_dir / safe_name(attachment.filename)
-                    if attachment.source_path and attachment.source_path.exists():
-                        shutil.copy2(attachment.source_path, target)
-                    else:
-                        target.write_bytes(attachment.content or b"")
+                for attachment_index, attachment in enumerate(mail.attachments, start=1):
+                    target = attachments_dir / safe_attachment_name(attachment.filename, attachment_index)
+                    self._write_attachment(attachment, target)
                     metadata["attachments"].append({
                         "filename": attachment.filename,
                         "export_path": str(target.relative_to(export_dir)),
@@ -81,6 +95,17 @@ class PortablePackageExporter:
             report_path=report_path,
             folder_results=folder_results,
         )
+
+    def _write_attachment(self, attachment, target: Path) -> None:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        outlook_attachment = getattr(attachment, "outlook_attachment", None)
+        if outlook_attachment is not None:
+            outlook_attachment.SaveAsFile(str(target))
+            return
+        if attachment.source_path and attachment.source_path.exists():
+            shutil.copy2(attachment.source_path, target)
+            return
+        target.write_bytes(attachment.content or b"")
 
     def _mail_metadata(self, mail: MailItemData) -> Dict[str, object]:
         return {
@@ -117,4 +142,3 @@ class PortablePackageExporter:
             lines.append(f"- Document types: {analysis['document_types']}")
             lines.append("")
         return "\n".join(lines)
-
