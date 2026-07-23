@@ -1,7 +1,7 @@
 ﻿OutSmart Werkbon Assistent
 
-Version: 2.8.1
+Version: 2.8.2
 Build: 2026-07-23
 Python: 3.12/3.13 supported
-Mode: OutSmart browser discovery using system Chrome/Edge
+Mode: OutSmart discovery attach to existing Chrome
 

@@ -4,7 +4,7 @@ import re
 from dataclasses import dataclass, asdict
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from modules.config import PROJECT_ROOT
 from modules.safety import READ_ONLY_GUARD
@@ -67,6 +67,40 @@ class OutSmartBrowserDiscovery:
                 await self.capture_page(page)
             await context.close()
 
+
+    async def connect_existing_chrome(self, cdp_url: str = "http://127.0.0.1:9222") -> None:
+        try:
+            from playwright.async_api import async_playwright
+        except Exception as exc:
+            raise RuntimeError("Playwright is niet geïnstalleerd. Start install_workpc_requirements.bat.") from exc
+
+        async with async_playwright() as p:
+            browser = await p.chromium.connect_over_cdp(cdp_url)
+            context = browser.contexts[0] if browser.contexts else await browser.new_context()
+            page = context.pages[0] if context.pages else await context.new_page()
+            print("\nVerbonden met bestaande Chrome in READ-ONLY mode.")
+            print("Navigeer in die Chrome naar OutSmart. Druk hier op ENTER om het huidige tabblad te scannen.")
+            print("Commando's: ENTER = scan huidig tabblad, nummer = kies tab, tabs = toon tabs, q = stoppen")
+            while True:
+                command = input("scan> ").strip().lower()
+                if command in {"q", "quit", "stop"}:
+                    break
+                if command == "tabs":
+                    pages = context.pages
+                    for idx, tab in enumerate(pages):
+                        print(f"{idx}: {await tab.title()} | {tab.url}")
+                    continue
+                if command.isdigit():
+                    idx = int(command)
+                    pages = context.pages
+                    if 0 <= idx < len(pages):
+                        page = pages[idx]
+                        print(f"Geselecteerd: {await page.title()} | {page.url}")
+                    else:
+                        print("Ongeldig tabnummer")
+                    continue
+                await self.capture_page(page)
+            await browser.close()
 
     async def _launch_context(self, playwright):
         launch_args = {
@@ -242,6 +276,7 @@ class OutSmartBrowserDiscovery:
 
 def run_outsmart_browser_discovery() -> None:
     asyncio.run(OutSmartBrowserDiscovery().run_interactive())
+
 
 
 

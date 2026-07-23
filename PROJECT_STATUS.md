@@ -96,3 +96,9 @@
 [X] OutSmart Browser Discovery gebruikt bestaande Chrome/Edge in plaats van Playwright Chromium-download
 [X] Installatiescript forceert geen browserdownload meer, wegens bedrijfs-certificaatblokkade
 
+
+## v2.8.2 toegevoegd
+
+[X] Attach-modus voor bestaande Chrome via remote debugging
+[X] Tabselectie met tabs/nummer/ENTER in terminal
+

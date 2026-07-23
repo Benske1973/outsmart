@@ -133,3 +133,15 @@ run_outsmart_browser_discovery.bat
 
 Deze tool inventariseert schermen, velden, tabellen en dropdowns. Output blijft lokaal in outsmart_exports/.
 
+
+## OutSmart discovery via bestaande Chrome
+
+Als reCAPTCHA in de aparte browser blokkeert, gebruik:
+
+``bat
+start_chrome_debug_outsmart.bat
+run_outsmart_attach_discovery.bat
+``
+
+Log zelf in in Chrome en scan daarna het geopende tabblad.
+
