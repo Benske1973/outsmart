@@ -6,9 +6,9 @@ from modules.outsmart_discovery_analyzer import OutSmartDiscoveryAnalyzer, write
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Analyze an OutSmart browser discovery ZIP")
-    parser.add_argument("zip", nargs="?", default="imports/20260723_114121_Werkbon_OutSmart.zip", help="Path to OutSmart discovery ZIP")
+    parser.add_argument("zip", nargs="?", default="imports/20260723_114121_Werkbon_OutSmart.zip", help="Path to OutSmart discovery ZIP or folder")
     args = parser.parse_args()
-    analysis = OutSmartDiscoveryAnalyzer().analyze_zip(Path(args.zip))
+    analysis = OutSmartDiscoveryAnalyzer().analyze_path(Path(args.zip))
     report = write_discovery_analysis_report(analysis)
     print("OutSmart discovery-analyse klaar")
     print(f"Rapport: {report}")

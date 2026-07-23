@@ -49,10 +49,59 @@ def _safe_cell(value: Any, limit: int = 220) -> str:
     return text[:limit]
 
 
+class _HtmlOptionParser:
+    def __init__(self) -> None:
+        from html.parser import HTMLParser
+
+        class Parser(HTMLParser):
+            def __init__(self) -> None:
+                super().__init__()
+                self.in_option = False
+                self.current: List[str] = []
+                self.options: List[str] = []
+
+            def handle_starttag(self, tag: str, attrs: List[Tuple[str, str]]) -> None:
+                attr_map = dict(attrs)
+                class_name = attr_map.get("class", "") or ""
+                role = attr_map.get("role", "") or ""
+                if tag.lower() in {"li", "option"} and (
+                    "select2-results__option" in class_name
+                    or "select2-result" in class_name
+                    or role == "option"
+                    or tag.lower() == "option"
+                ):
+                    self.in_option = True
+                    self.current = []
+
+            def handle_data(self, data: str) -> None:
+                if self.in_option:
+                    self.current.append(data)
+
+            def handle_endtag(self, tag: str) -> None:
+                if self.in_option and tag.lower() in {"li", "option"}:
+                    text = _clean("".join(self.current))
+                    if text and text not in self.options and text not in {"Selecteer uit lijst...", "Begin met typen..."}:
+                        self.options.append(text)
+                    self.in_option = False
+
+        self.parser = Parser()
+
+    def parse(self, html: str) -> List[str]:
+        self.parser.feed(html)
+        return self.parser.options
+
+
 class OutSmartDiscoveryAnalyzer:
+    def analyze_path(self, source_path: Path) -> Dict[str, Any]:
+        source_path = Path(source_path)
+        if source_path.is_dir():
+            return self.analyze_directory(source_path)
+        return self.analyze_zip(source_path)
+
     def analyze_zip(self, zip_path: Path) -> Dict[str, Any]:
         zip_path = Path(zip_path)
         snapshots: List[Dict[str, Any]] = []
+        html_options: Dict[str, List[str]] = {}
         file_counts = Counter()
         entry_names: List[str] = []
         with zipfile.ZipFile(zip_path, "r") as archive:
@@ -60,7 +109,8 @@ class OutSmartDiscoveryAnalyzer:
                 entry_names.append(info.filename)
                 suffix = Path(info.filename).suffix.lower() or "<folder>"
                 file_counts[suffix] += 1
-                if info.filename.lower().endswith("snapshot.json"):
+                lower_name = info.filename.lower()
+                if lower_name.endswith("snapshot.json"):
                     try:
                         raw = archive.read(info).decode("utf-8-sig", errors="replace")
                         snapshot = json.loads(raw)
@@ -68,9 +118,39 @@ class OutSmartDiscoveryAnalyzer:
                         snapshots.append(snapshot)
                     except Exception as exc:
                         snapshots.append({"_entry": info.filename, "_error": str(exc)})
-        return self._build_analysis(zip_path, entry_names, file_counts, snapshots)
+                elif lower_name.endswith(".html"):
+                    raw = archive.read(info).decode("utf-8-sig", errors="replace")
+                    options = _HtmlOptionParser().parse(raw)
+                    if options:
+                        html_options[info.filename] = options
+        return self._build_analysis(zip_path, entry_names, file_counts, snapshots, html_options)
 
-    def _build_analysis(self, zip_path: Path, entry_names: List[str], file_counts: Counter, snapshots: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def analyze_directory(self, directory: Path) -> Dict[str, Any]:
+        directory = Path(directory)
+        snapshots: List[Dict[str, Any]] = []
+        html_options: Dict[str, List[str]] = {}
+        file_counts = Counter()
+        entry_names: List[str] = []
+        for path in sorted(directory.rglob("*")):
+            if path.is_dir():
+                continue
+            rel = str(path.relative_to(directory))
+            entry_names.append(rel)
+            file_counts[path.suffix.lower() or "<folder>"] += 1
+            if path.name.lower() == "snapshot.json":
+                try:
+                    snapshot = json.loads(path.read_text(encoding="utf-8-sig", errors="replace"))
+                    snapshot["_entry"] = rel
+                    snapshots.append(snapshot)
+                except Exception as exc:
+                    snapshots.append({"_entry": rel, "_error": str(exc)})
+            elif path.suffix.lower() == ".html":
+                options = _HtmlOptionParser().parse(path.read_text(encoding="utf-8-sig", errors="replace"))
+                if options:
+                    html_options[rel] = options
+        return self._build_analysis(directory, entry_names, file_counts, snapshots, html_options)
+
+    def _build_analysis(self, zip_path: Path, entry_names: List[str], file_counts: Counter, snapshots: List[Dict[str, Any]], html_options: Dict[str, List[str]] | None = None) -> Dict[str, Any]:
         screens = Counter()
         url_counter = Counter()
         title_counter = Counter()
@@ -83,6 +163,11 @@ class OutSmartDiscoveryAnalyzer:
         link_counter = Counter()
         option_counter = Counter()
         raw_text_index = []
+        html_option_rows = []
+        for entry, options in (html_options or {}).items():
+            for option in options:
+                option_counter[("html_select2_options", option)] += 1
+            html_option_rows.append({"entry": entry, "option_count": len(options), "options": options[:1500]})
 
         for snapshot in snapshots:
             documents = [snapshot]
@@ -203,8 +288,9 @@ class OutSmartDiscoveryAnalyzer:
             "field_rows": field_rows,
             "option_values": [
                 {"field": field, "option": option, "count": count}
-                for (field, option), count in option_counter.most_common(1200)
+                for (field, option), count in option_counter.most_common(3000)
             ],
+            "html_option_rows": html_option_rows,
             "missing_topics": missing_topics,
         }
 
@@ -258,6 +344,7 @@ def write_discovery_analysis_report(analysis: Dict[str, Any]) -> Path:
     dropdowns_csv = REPORTS_DIR / f"outsmart_discovery_dropdowns_{timestamp}.csv"
     options_csv = REPORTS_DIR / f"outsmart_discovery_options_{timestamp}.csv"
     tables_csv = REPORTS_DIR / f"outsmart_discovery_tables_{timestamp}.csv"
+    html_options_csv = REPORTS_DIR / f"outsmart_discovery_html_options_{timestamp}.csv"
 
     json_path.write_text(json.dumps(analysis, indent=4, ensure_ascii=False), encoding="utf-8")
 
@@ -271,6 +358,10 @@ def write_discovery_analysis_report(analysis: Dict[str, Any]) -> Path:
         "screen_type", "title", "url", "trigger", "option_count", "options", "error", "entry",
     ])
     _write_csv(options_csv, analysis["option_values"], ["field", "option", "count"])
+    html_rows = []
+    for row in analysis.get("html_option_rows", []):
+        html_rows.append({"entry": row.get("entry", ""), "option_count": row.get("option_count", 0), "options": " | ".join(row.get("options") or [])})
+    _write_csv(html_options_csv, html_rows, ["entry", "option_count", "options"])
     table_rows = []
     for row in analysis["table_rows"]:
         table_rows.append({**row, "headers": " | ".join(row.get("headers") or [])})
@@ -299,11 +390,16 @@ def write_discovery_analysis_report(analysis: Dict[str, Any]) -> Path:
     lines.append(f"- Fields: {analysis['fields_total']} total / {analysis['fields_unique']} unique")
     lines.append(f"- Dropdown captures: {analysis['dropdowns_total']} total / {analysis['dropdowns_unique']} unique")
     lines.append(f"- Tables: {analysis['tables_total']}")
+    lines.append(f"- HTML Select2 option blocks: {len(analysis.get('html_option_rows', []))}")
 
     lines.extend(["", "## Important Fields"])
     for row in analysis["important_fields"][:160]:
         bits = [row.get("label"), row.get("name"), row.get("id"), row.get("tag"), row.get("type")]
         lines.append("- " + " | ".join(_safe_cell(bit, 80) for bit in bits if _safe_cell(bit, 80)))
+
+    lines.extend(["", "## HTML Select2 Options"])
+    for row in analysis.get("html_option_rows", [])[:80]:
+        lines.append(f"- {row.get('entry')}: {row.get('option_count')} opties -> {(row.get('options') or [])[:30]}")
 
     lines.extend(["", "## Dropdowns"])
     if not analysis["dropdown_rows"]:
@@ -326,6 +422,7 @@ def write_discovery_analysis_report(analysis: Dict[str, Any]) -> Path:
     lines.append(f"- Dropdowns CSV: `{dropdowns_csv}`")
     lines.append(f"- Options CSV: `{options_csv}`")
     lines.append(f"- Tables CSV: `{tables_csv}`")
+    lines.append(f"- HTML options CSV: `{html_options_csv}`")
     md_path.write_text("\n".join(lines), encoding="utf-8")
     return md_path
 
