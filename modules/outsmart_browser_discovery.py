@@ -53,12 +53,7 @@ class OutSmartBrowserDiscovery:
             raise RuntimeError("Playwright is niet geïnstalleerd. Start install_workpc_requirements.bat.") from exc
 
         async with async_playwright() as p:
-            context = await p.chromium.launch_persistent_context(
-                str(PROFILE_DIR),
-                headless=False,
-                viewport={"width": 1440, "height": 950},
-                accept_downloads=False,
-            )
+            context = await self._launch_context(p)
             page = context.pages[0] if context.pages else await context.new_page()
             if not page.url or page.url == "about:blank":
                 await page.goto("https://app.out-smart.com/next/", wait_until="domcontentloaded")
@@ -71,6 +66,22 @@ class OutSmartBrowserDiscovery:
                     break
                 await self.capture_page(page)
             await context.close()
+
+
+    async def _launch_context(self, playwright):
+        launch_args = {
+            "user_data_dir": str(PROFILE_DIR),
+            "headless": False,
+            "viewport": {"width": 1440, "height": 950},
+            "accept_downloads": False,
+        }
+        for channel in ["chrome", "msedge"]:
+            try:
+                return await playwright.chromium.launch_persistent_context(channel=channel, **launch_args)
+            except Exception:
+                continue
+        # Fallback: only works when Playwright browser binaries are installed.
+        return await playwright.chromium.launch_persistent_context(**launch_args)
 
     async def capture_page(self, page) -> Path:
         READ_ONLY_GUARD.assert_read_only()
@@ -231,5 +242,7 @@ class OutSmartBrowserDiscovery:
 
 def run_outsmart_browser_discovery() -> None:
     asyncio.run(OutSmartBrowserDiscovery().run_interactive())
+
+
 
 

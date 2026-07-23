@@ -15,5 +15,11 @@ if not defined PYTHON_CMD (
 echo Gebruik Python: %PYTHON_CMD%
 %PYTHON_CMD% -m pip install --upgrade pip
 %PYTHON_CMD% -m pip install -r requirements.txt
-%PYTHON_CMD% -m playwright install chromium
+
+echo.
+echo Playwright package is geinstalleerd.
+echo De discovery gebruikt standaard de bestaande Chrome of Microsoft Edge op deze pc.
+echo Daarom is playwright install chromium normaal niet nodig.
+echo.
+echo Als er later toch een browserfout komt, laat dit weten.
 pause

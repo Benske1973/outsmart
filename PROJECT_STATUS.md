@@ -90,3 +90,9 @@
 [X] Lokale browserprofielmap voor handmatige login
 [X] Gevaarlijke acties worden vermeden in discovery
 
+
+## v2.8.1 toegevoegd
+
+[X] OutSmart Browser Discovery gebruikt bestaande Chrome/Edge in plaats van Playwright Chromium-download
+[X] Installatiescript forceert geen browserdownload meer, wegens bedrijfs-certificaatblokkade
+
