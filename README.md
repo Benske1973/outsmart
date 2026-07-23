@@ -167,3 +167,32 @@ Let op: rapporten en exports bevatten interne OutSmart-data en blijven lokaal. Z
 
 Voor nieuwe OutSmart-scrapes gebruikt de discovery-tool nu ook frame/iframe-captures. Dat is nodig omdat de echte werkbonvelden vaak in een interne backoffice-frame zitten.
 
+## OutSmart Deep Discovery
+
+Voor grote schermen zoals **Nieuwe werkbon** gebruik je de diepe read-only scan:
+
+```bat
+start_chrome_debug_outsmart.bat
+run_outsmart_deep_discovery.bat
+```
+
+In het zwarte venster:
+
+```text
+tabs
+0
+deep
+```
+
+Gebruik `deep` op:
+
+- Nieuwe werkbon
+- Levering / Klantrelatie / Adres
+- Project kiezen
+- Object of gebouw kiezen
+- Formulier kiezen
+- Bestaande werkbon bekijken
+- Bestaande werkbon bewerken
+
+De deep scan probeert ook grote zoekdropdowns te lezen met veilige zoektermen zoals Gent, Scheldekenslaan, Botermarkt en gebouwcodes. Hij schrijft niets naar OutSmart.
+

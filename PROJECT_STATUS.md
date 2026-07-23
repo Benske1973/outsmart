@@ -109,3 +109,11 @@
 [X] Discovery-tool uitgebreid om bij nieuwe scans ook iframe/frame-inhoud op te slaan
 [X] Analyse toont nu expliciet of bestaande werkbonnen, formulieren, bijlagen en dropdowns voldoende gecapteerd zijn
 
+## v2.9.0 toegevoegd
+
+[X] OutSmart Deep Discovery command voor nieuwe werkbonnen en bestaande werkbonnen
+[X] Frame/iframe scroll-captures
+[X] Veilige dropdown-capture in pagina en frames
+[X] Zoekprobe voor grote Select2/adres/project/object dropdowns
+[X] Apart startscript run_outsmart_deep_discovery.bat
+

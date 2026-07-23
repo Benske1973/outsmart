@@ -23,9 +23,19 @@ SAFE_DROPDOWN_SELECTORS = [
     "[role='combobox']",
     ".select2-selection",
     ".select2-choice",
+    ".select2-container",
     "button[aria-haspopup='listbox']",
     "input[aria-autocomplete]",
 ]
+
+DROPDOWN_SEARCH_TERMS = [
+    "", " ", "a", "e", "s", "g", "1", "2", "3", "4", "5",
+    "Gent", "Scheldekenslaan", "Botermarkt", "Antonius", "Kortrijksesteenweg",
+    "Jan Breydelstraat", "Farmanstraat", "Brandweer", "Mobiliteit", "Thuis",
+    "G", "S.G", "S300", "G11", "G70",
+]
+
+SCROLL_STEPS = [0, 450, 900, 1400, 2000, 2800, 3800, 5200]
 
 
 @dataclass
@@ -80,7 +90,7 @@ class OutSmartBrowserDiscovery:
             page = context.pages[0] if context.pages else await context.new_page()
             print("\nVerbonden met bestaande Chrome in READ-ONLY mode.")
             print("Navigeer in die Chrome naar OutSmart. Druk hier op ENTER om het huidige tabblad te scannen.")
-            print("Commando's: ENTER = scan huidig tabblad, nummer = kies tab, tabs = toon tabs, q = stoppen")
+            print("Commando's: ENTER = scan huidig tabblad, deep = diepe read-only scan, nummer = kies tab, tabs = toon tabs, q = stoppen")
             while True:
                 command = input("scan> ").strip().lower()
                 if command in {"q", "quit", "stop"}:
@@ -89,6 +99,9 @@ class OutSmartBrowserDiscovery:
                     pages = context.pages
                     for idx, tab in enumerate(pages):
                         print(f"{idx}: {await tab.title()} | {tab.url}")
+                    continue
+                if command in {"deep", "d", "diep"}:
+                    await self.capture_page(page, deep=True)
                     continue
                 if command.isdigit():
                     idx = int(command)
@@ -117,7 +130,7 @@ class OutSmartBrowserDiscovery:
         # Fallback: only works when Playwright browser binaries are installed.
         return await playwright.chromium.launch_persistent_context(**launch_args)
 
-    async def capture_page(self, page) -> Path:
+    async def capture_page(self, page, deep: bool = False) -> Path:
         READ_ONLY_GUARD.assert_read_only()
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         name = self._safe_name(await page.title() or "outsmart_page")
@@ -154,8 +167,16 @@ class OutSmartBrowserDiscovery:
                 })
 
         snapshot = await self._extract_snapshot(page)
-        dropdowns = await self._discover_dropdowns(page, folder)
+        dropdowns = await self._discover_dropdowns(page, folder, page=page, keyboard=page.keyboard, prefix="page", deep=deep)
         snapshot.dropdowns.extend(dropdowns)
+        if deep:
+            await self._scroll_context(page, page, folder, "page")
+            for frame_index, frame in enumerate(page.frames):
+                await self._scroll_context(frame, page, folder, f"frame_{frame_index:02d}")
+            for frame_index, frame in enumerate(page.frames):
+                frame_dropdowns = await self._discover_dropdowns(frame, folder, page=page, keyboard=page.keyboard, prefix=f"frame_{frame_index:02d}", deep=True)
+                if frame_index < len(frame_snapshots):
+                    frame_snapshots[frame_index].setdefault("dropdowns", []).extend(frame_dropdowns)
         snapshot_dict = asdict(snapshot)
         snapshot_dict["frames"] = frame_snapshots
         (folder / "snapshot.json").write_text(json.dumps(snapshot_dict, indent=4, ensure_ascii=False), encoding="utf-8")
@@ -295,15 +316,25 @@ class OutSmartBrowserDiscovery:
             dropdowns=[],
         )
 
-    async def _discover_dropdowns(self, page, folder: Path) -> List[Dict[str, object]]:
+    async def _discover_dropdowns(self, context, folder: Path, page, keyboard, prefix: str = "page", deep: bool = False) -> List[Dict[str, object]]:
         results: List[Dict[str, object]] = []
         handles = []
+        seen_selectors = set()
         for selector in SAFE_DROPDOWN_SELECTORS:
             try:
-                handles.extend(await page.query_selector_all(selector))
+                for handle in await context.query_selector_all(selector):
+                    try:
+                        selector_key = await handle.evaluate("el => el.id || el.name || el.className || el.outerHTML.slice(0,120)")
+                    except Exception:
+                        selector_key = str(id(handle))
+                    if selector_key in seen_selectors:
+                        continue
+                    seen_selectors.add(selector_key)
+                    handles.append(handle)
             except Exception:
                 pass
-        for idx, handle in enumerate(handles[:80], start=1):
+        limit = 160 if deep else 80
+        for idx, handle in enumerate(handles[:limit], start=1):
             try:
                 text = (await handle.inner_text()) or ""
             except Exception:
@@ -314,30 +345,80 @@ class OutSmartBrowserDiscovery:
                 box = await handle.bounding_box()
                 if not box:
                     continue
-                await handle.click(timeout=1200)
-                await page.wait_for_timeout(400)
-                options = await page.evaluate(
-                    r"""
-                    () => Array.from(document.querySelectorAll('.select2-results__option, .select2-result-label, [role=option], option, li')).slice(0, 300).map(el => ({
-                      text: (el.innerText || el.textContent || '').trim(),
-                      value: el.getAttribute('value') || el.getAttribute('data-value') || '',
-                      role: el.getAttribute('role') || '',
-                      className: el.className || ''
-                    })).filter(x => x.text)
-                    """
-                )
-                if options:
-                    await page.screenshot(path=str(folder / f"dropdown_{idx:03d}.png"), full_page=True)
-                    results.append({"index": idx, "trigger_text": text.strip()[:160], "options": options[:300]})
-                await page.keyboard.press("Escape")
+                await handle.click(timeout=1400)
+                await page.wait_for_timeout(500)
+                options = await self._collect_visible_options(context)
+                searches = []
+                if deep:
+                    searches = await self._probe_search_dropdown(context, page, keyboard)
+                    merged = {(opt.get("text", ""), opt.get("value", "")): opt for opt in options}
+                    for search in searches:
+                        for opt in search.get("options", []):
+                            merged[(opt.get("text", ""), opt.get("value", ""))] = opt
+                    options = list(merged.values())
+                if options or searches:
+                    try:
+                        await page.screenshot(path=str(folder / f"{prefix}_dropdown_{idx:03d}.png"), full_page=True)
+                    except Exception:
+                        pass
+                    results.append({
+                        "index": idx,
+                        "context": prefix,
+                        "trigger_text": text.strip()[:160],
+                        "options": options[:1200],
+                        "searches": searches[:80],
+                    })
+                await keyboard.press("Escape")
                 await page.wait_for_timeout(150)
             except Exception as exc:
-                results.append({"index": idx, "trigger_text": text.strip()[:160], "error": str(exc)})
+                results.append({"index": idx, "context": prefix, "trigger_text": text.strip()[:160], "error": str(exc)})
                 try:
-                    await page.keyboard.press("Escape")
+                    await keyboard.press("Escape")
                 except Exception:
                     pass
         return results
+
+    async def _collect_visible_options(self, context) -> List[Dict[str, object]]:
+        return await context.evaluate(
+            r"""
+            () => Array.from(document.querySelectorAll('.select2-results__option, .select2-result-label, [role=option], option, li, .dropdown-item, .v-list-item')).slice(0, 1500).map(el => ({
+              text: (el.innerText || el.textContent || '').trim(),
+              value: el.getAttribute('value') || el.getAttribute('data-value') || el.getAttribute('data-id') || '',
+              role: el.getAttribute('role') || '',
+              className: el.className || ''
+            })).filter(x => x.text && x.text.length < 300)
+            """
+        )
+
+    async def _probe_search_dropdown(self, context, page, keyboard) -> List[Dict[str, object]]:
+        searches: List[Dict[str, object]] = []
+        for term in DROPDOWN_SEARCH_TERMS:
+            try:
+                search = await context.query_selector('.select2-search__field, .select2-input, input[role="searchbox"], input[type="search"]')
+                if not search:
+                    break
+                await search.fill(term, timeout=900)
+                await page.wait_for_timeout(650)
+                options = await self._collect_visible_options(context)
+                searches.append({"term": term, "option_count": len(options), "options": options[:250]})
+            except Exception:
+                break
+        try:
+            await keyboard.press("Escape")
+        except Exception:
+            pass
+        return searches
+
+    async def _scroll_context(self, context, page, folder: Path, prefix: str) -> None:
+        for pos in SCROLL_STEPS:
+            try:
+                await context.evaluate("y => window.scrollTo(0, y)", pos)
+                await page.wait_for_timeout(250)
+                snapshot = await self._extract_frame_snapshot(context, 0) if prefix.startswith("frame_") else await self._extract_snapshot(page)
+                out = folder / f"{prefix}_scroll_{pos}.json"
+                out.write_text(json.dumps(asdict(snapshot), indent=4, ensure_ascii=False), encoding="utf-8")
+            except Exception:
+                continue
 
     def _looks_forbidden(self, text: str) -> bool:
         lower = (text or "").lower()
