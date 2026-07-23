@@ -1,7 +1,7 @@
 ﻿OutSmart Werkbon Assistent
 
-Version: 2.5.0
+Version: 2.6.0
 Build: 2026-07-23
 Python: 3.12/3.13 supported
-Mode: local mailbox case analyzer
+Mode: debtor-based mail to OutSmart comparator
 

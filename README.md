@@ -94,3 +94,14 @@ run_case_analysis.bat imports\mailbox_export_20260723_090753.zip
 
 De CSV/JSON/Markdown rapporten komen in eports/.
 
+
+## Mail naar OutSmart vergelijking
+
+Zet OutSmart CSV exports in imports\outsmart\ en draai:
+
+``bat
+run_mail_outsmart_compare.bat imports\mailbox_export_20260723_090753.zip
+``
+
+Dit vergelijkt per S.G.-debiteur mails met bestaande OutSmart-werkbonnen en legt verschillen in adres, gebouw, eenheid en referenties vast.
+

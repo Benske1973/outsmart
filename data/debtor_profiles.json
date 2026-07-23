@@ -1,0 +1,57 @@
+﻿{
+    "S.G-1": {
+        "name": "STAD.GENT (Thema)",
+        "folders": ["AANVRAAG WERKOPDRACHT", "AANVRAAG WERKOPDRACHT/annulatie werkopdracht", "DEPANNAGES", "DEPANNAGES/Aanvraag WB", "DEPANNAGES/Werkbon SG", "Postvak IN"],
+        "default_invoice_debtor": "S.G-1",
+        "expected_sources": {
+            "workorder": "dienstbevel_pdf_or_subject",
+            "purchase_order": "bestelbon_pdf_blue_number",
+            "building_and_unit": "dienstbevel_location_block",
+            "extra_instructions": "mail_body"
+        }
+    },
+    "S.G-2": {
+        "name": "THUISPUNTGENT",
+        "folders": ["THUIS.GENT"],
+        "default_invoice_debtor": "S.G-2",
+        "expected_sources": {
+            "workorder": "mail_body_or_subject",
+            "purchase_order": "unknown",
+            "building_and_unit": "mail_body",
+            "extra_instructions": "mail_body"
+        }
+    },
+    "S.G-3": {
+        "name": "HVZ Zone",
+        "folders": ["BRANDWEER", "BRANDWEER/Facturatie/VS01-2026", "BRANDWEER/Facturatie/VS02-2026", "BRANDWEER/Facturatie/VS03-2025"],
+        "default_invoice_debtor": "S.G-3",
+        "expected_sources": {
+            "workorder": "outsmart_existing_or_mail_body",
+            "purchase_order": "unknown",
+            "building_and_unit": "outsmart_or_mail_body",
+            "extra_instructions": "mail_body"
+        }
+    },
+    "S.G-4": {
+        "name": "STAD.GENT (Mobiliteit)",
+        "folders": ["MOBILITEIT", "MOBILITEIT/2026", "MOBILITEIT/2026/Facturatie/VS01", "MOBILITEIT/2026/Facturatie/VS02"],
+        "default_invoice_debtor": "S.G-4",
+        "expected_sources": {
+            "workorder": "docx_pdf_or_subject",
+            "purchase_order": "unknown",
+            "building_and_unit": "docx_body_pdf",
+            "extra_instructions": "mail_body_docx"
+        }
+    },
+    "S.G-5": {
+        "name": "STAD-GENT (FEE)",
+        "folders": ["FEESTELIJKHEDEN", "FEESTELIJKHEDEN/NIEUW/Opdrachten"],
+        "default_invoice_debtor": "S.G-5",
+        "expected_sources": {
+            "workorder": "mail_body_or_attachment",
+            "purchase_order": "unknown",
+            "building_and_unit": "mail_body_or_attachment",
+            "extra_instructions": "mail_body"
+        }
+    }
+}

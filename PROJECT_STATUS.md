@@ -67,3 +67,11 @@
 [X] Classificatie: NIEUWE_OPDRACHT, BESTAANDE_WERKBON, WIJZIGING, ANNULATIE, CONTROLE_NODIG, GEEN_ACTIE
 [X] CSV/JSON/Markdown rapportage voor verdere analyse
 
+
+## v2.6.0 toegevoegd
+
+[X] Debiteurprofielen S.G-1 t.e.m. S.G-5
+[X] Flexibele OutSmart CSV importer
+[X] Mail-OutSmart comparator per debiteur
+[X] Kennisdocument OutSmart werkbonvelden en gebouw/eenheid-aandachtspunten
+
