@@ -1,7 +1,8 @@
 ﻿OutSmart Werkbon Assistent
 
-Version: 2.3.3
-Build: 2026-07-22
+Version: 2.3.4
+Build: 2026-07-23
 Python: 3.12/3.13 supported
 Mode: READ-ONLY mailbox sample collector
+Fix: UTF-8 BOM config support
 

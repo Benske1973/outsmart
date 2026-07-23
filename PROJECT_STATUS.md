@@ -41,3 +41,9 @@
 [X] Max 100 mails per geselecteerde map
 [X] Discovery rapporten toegevoegd aan .gitignore
 
+
+## v2.3.4 toegevoegd
+
+[X] Configbestanden met UTF-8 BOM worden correct gelezen op Python 3.13
+[X] Werk-pc zonder lokale .venv blijft ondersteund via gewone python
+

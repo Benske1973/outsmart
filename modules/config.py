@@ -57,7 +57,7 @@ def load_mailbox_profiles() -> Dict[str, Dict[str, str]]:
     path = DATA_DIR / "mailbox_profiles.json"
     if not path.exists():
         return {}
-    return json.loads(path.read_text(encoding="utf-8"))
+    return json.loads(path.read_text(encoding="utf-8-sig"))
 
 
 def ensure_default_config() -> Path:
@@ -80,7 +80,7 @@ def ensure_default_config() -> Path:
 
 def load_config() -> AppConfig:
     path = ensure_default_config()
-    raw = json.loads(path.read_text(encoding="utf-8"))
+    raw = json.loads(path.read_text(encoding="utf-8-sig"))
     profiles = load_mailbox_profiles()
     return AppConfig(
         read_only_mode=bool(raw.get("READ_ONLY_MODE", True)),
@@ -91,6 +91,7 @@ def load_config() -> AppConfig:
         mailbox_folders=list(raw.get("MAILBOX_FOLDERS", DEFAULT_MAILBOX_FOLDERS)),
         mailbox_profiles=profiles,
     )
+
 
 
 

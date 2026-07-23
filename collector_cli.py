@@ -8,7 +8,7 @@ from modules.logging_setup import configure_logging
 
 
 def load_config_from_path(path: str) -> AppConfig:
-    raw = json.loads(Path(path).read_text(encoding="utf-8"))
+    raw = json.loads(Path(path).read_text(encoding="utf-8-sig"))
     return AppConfig(
         read_only_mode=bool(raw.get("READ_ONLY_MODE", True)),
         demo_mode=bool(raw.get("DEMO_MODE", True)),
@@ -41,3 +41,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
