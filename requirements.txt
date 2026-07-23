@@ -3,3 +3,5 @@
 pywin32>=306
 # OutSmart browser discovery:
 playwright>=1.45
+# Local analysis of PDF attachments in exported mail packages:
+pypdf>=6.0
