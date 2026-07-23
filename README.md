@@ -83,3 +83,14 @@ run_import_analysis.bat imports\mailbox_export_20260723_090753.zip
 
 Rapporten komen in eports/ en mogen niet naar GitHub.
 
+
+## Case analyse
+
+Groepeer en classificeer mails lokaal met:
+
+``bat
+run_case_analysis.bat imports\mailbox_export_20260723_090753.zip
+``
+
+De CSV/JSON/Markdown rapporten komen in eports/.
+

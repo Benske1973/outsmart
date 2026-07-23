@@ -60,3 +60,10 @@
 [X] Analyse per map: aantallen, domeinen, bijlagetypes, documenttypes, ordernummers, bestelbonnummers en signalen
 [X] Rapportage naar reports/ zonder GitHub-upload
 
+
+## v2.5.0 toegevoegd
+
+[X] Mail case analyzer: groepering per order/PO/OutSmartnummer/onderwerp
+[X] Classificatie: NIEUWE_OPDRACHT, BESTAANDE_WERKBON, WIJZIGING, ANNULATIE, CONTROLE_NODIG, GEEN_ACTIE
+[X] CSV/JSON/Markdown rapportage voor verdere analyse
+
