@@ -105,3 +105,14 @@ run_mail_outsmart_compare.bat imports\mailbox_export_20260723_090753.zip
 
 Dit vergelijkt per S.G.-debiteur mails met bestaande OutSmart-werkbonnen en legt verschillen in adres, gebouw, eenheid en referenties vast.
 
+
+## OutSmart export analyse
+
+Zet OutSmart CSV exports in imports\outsmart\ en draai:
+
+``bat
+run_outsmart_export_analysis.bat
+``
+
+Deze analyse inventariseert per S.G.-debiteur gebouwen, adressen, eenheden en dropdownachtige waarden.
+

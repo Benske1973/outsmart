@@ -75,3 +75,10 @@
 [X] Mail-OutSmart comparator per debiteur
 [X] Kennisdocument OutSmart werkbonvelden en gebouw/eenheid-aandachtspunten
 
+
+## v2.7.0 toegevoegd
+
+[X] OutSmart referentieanalyse voor CSV exports
+[X] Inventarisatie gebouwen, adressen, eenheden en dropdownachtige waarden per debiteur
+[X] CSV met adres/gebouw/eenheid voorbeelden
+
