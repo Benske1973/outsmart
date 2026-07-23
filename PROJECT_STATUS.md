@@ -53,3 +53,10 @@
 [X] Exportnamen ingekort en voorzien van hash tegen Windows-padlengteproblemen
 [X] Outlook-bijlagen worden read-only lokaal gekopieerd via SaveAsFile
 
+
+## v2.4.0 toegevoegd
+
+[X] Lokale import-analyse voor mailbox export ZIP
+[X] Analyse per map: aantallen, domeinen, bijlagetypes, documenttypes, ordernummers, bestelbonnummers en signalen
+[X] Rapportage naar reports/ zonder GitHub-upload
+

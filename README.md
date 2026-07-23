@@ -72,3 +72,14 @@ run_workpc_mail_sample.bat
 
 Deze neemt Postvak IN mee en max. 100 mails per geselecteerde map. Upload de export niet naar GitHub.
 
+
+## Import analyse
+
+Analyseer een mailbox export lokaal met:
+
+``bat
+run_import_analysis.bat imports\mailbox_export_20260723_090753.zip
+``
+
+Rapporten komen in eports/ en mogen niet naar GitHub.
+

@@ -1,8 +1,7 @@
 ﻿OutSmart Werkbon Assistent
 
-Version: 2.3.5
+Version: 2.4.0
 Build: 2026-07-23
 Python: 3.12/3.13 supported
-Mode: READ-ONLY mailbox sample collector
-Fix: safe short export paths for Outlook attachments
+Mode: local mailbox import analyzer
 
