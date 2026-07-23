@@ -81,7 +81,8 @@ Analyseer een mailbox export lokaal met:
 run_import_analysis.bat imports\mailbox_export_20260723_090753.zip
 ``
 
-Rapporten komen in eports/ en mogen niet naar GitHub.
+Rapporten komen in 
+eports/ en mogen niet naar GitHub.
 
 
 ## Case analyse
@@ -92,7 +93,8 @@ Groepeer en classificeer mails lokaal met:
 run_case_analysis.bat imports\mailbox_export_20260723_090753.zip
 ``
 
-De CSV/JSON/Markdown rapporten komen in eports/.
+De CSV/JSON/Markdown rapporten komen in 
+eports/.
 
 
 ## Mail naar OutSmart vergelijking
@@ -144,4 +146,24 @@ run_outsmart_attach_discovery.bat
 ``
 
 Log zelf in in Chrome en scan daarna het geopende tabblad.
+
+## OutSmart discovery ZIP analyse
+
+Wanneer je een OutSmart scrape ZIP in `imports` plaatst, analyseer je die lokaal met:
+
+```bat
+run_outsmart_discovery_analysis.bat imports60723_114121_Werkbon_OutSmart.zip
+```
+
+De rapporten komen in `reports/`:
+
+- schermdekking
+- gevonden velden
+- tabellen
+- dropdowns en opties
+- waarschuwingen over ontbrekende onderdelen
+
+Let op: rapporten en exports bevatten interne OutSmart-data en blijven lokaal. Ze worden niet naar GitHub gepusht.
+
+Voor nieuwe OutSmart-scrapes gebruikt de discovery-tool nu ook frame/iframe-captures. Dat is nodig omdat de echte werkbonvelden vaak in een interne backoffice-frame zitten.
 

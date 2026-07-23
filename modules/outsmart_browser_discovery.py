@@ -127,14 +127,111 @@ class OutSmartBrowserDiscovery:
         html = await page.content()
         (folder / "page.html").write_text(html, encoding="utf-8")
         await page.screenshot(path=str(folder / "screenshot.png"), full_page=True)
+
+        frame_snapshots = []
+        for frame_index, frame in enumerate(page.frames):
+            try:
+                await frame.wait_for_load_state("domcontentloaded", timeout=1500)
+            except Exception:
+                pass
+            try:
+                frame_html = await frame.content()
+                (folder / f"frame_{frame_index:02d}.html").write_text(frame_html, encoding="utf-8")
+                frame_snapshot = await self._extract_frame_snapshot(frame, frame_index)
+                frame_snapshots.append(asdict(frame_snapshot))
+            except Exception as exc:
+                frame_snapshots.append({
+                    "frame_index": frame_index,
+                    "url": getattr(frame, "url", ""),
+                    "title": "",
+                    "captured_at": datetime.now().isoformat(timespec="seconds"),
+                    "fields": [],
+                    "buttons": [],
+                    "links": [],
+                    "tables": [],
+                    "dropdowns": [],
+                    "error": str(exc),
+                })
+
         snapshot = await self._extract_snapshot(page)
-        (folder / "snapshot.json").write_text(json.dumps(asdict(snapshot), indent=4, ensure_ascii=False), encoding="utf-8")
         dropdowns = await self._discover_dropdowns(page, folder)
         snapshot.dropdowns.extend(dropdowns)
-        (folder / "snapshot.json").write_text(json.dumps(asdict(snapshot), indent=4, ensure_ascii=False), encoding="utf-8")
-        (folder / "SUMMARY.md").write_text(self._summary(snapshot), encoding="utf-8")
+        snapshot_dict = asdict(snapshot)
+        snapshot_dict["frames"] = frame_snapshots
+        (folder / "snapshot.json").write_text(json.dumps(snapshot_dict, indent=4, ensure_ascii=False), encoding="utf-8")
+        (folder / "SUMMARY.md").write_text(self._summary(snapshot, frame_snapshots), encoding="utf-8")
         print(f"Scan klaar: {folder}")
         return folder
+
+
+    async def _extract_frame_snapshot(self, frame, frame_index: int) -> DiscoverySnapshot:
+        data = await frame.evaluate(
+            r"""
+            () => {
+              const visibleText = (el) => (el.innerText || el.value || el.getAttribute('aria-label') || el.getAttribute('title') || '').trim();
+              const cssPath = (el) => {
+                if (el.id) return '#' + CSS.escape(el.id);
+                const parts = [];
+                while (el && el.nodeType === Node.ELEMENT_NODE && parts.length < 7) {
+                  let part = el.nodeName.toLowerCase();
+                  if (el.className && typeof el.className === 'string') {
+                    const cls = el.className.trim().split(/\s+/).slice(0,2).map(c => '.' + CSS.escape(c)).join('');
+                    part += cls;
+                  }
+                  parts.unshift(part);
+                  el = el.parentElement;
+                }
+                return parts.join(' > ');
+              };
+              const labelFor = (el) => {
+                if (el.labels && el.labels[0]) return el.labels[0].innerText.trim();
+                const id = el.id || '';
+                if (id) {
+                  const label = document.querySelector(`label[for="${CSS.escape(id)}"]`);
+                  if (label) return label.innerText.trim();
+                }
+                const parent = el.closest('.form-group, .control-group, tr, div');
+                if (parent) {
+                  const label = parent.querySelector('label, .control-label, th, td:first-child');
+                  if (label) return label.innerText.trim();
+                }
+                return '';
+              };
+              const fields = Array.from(document.querySelectorAll('input, textarea, select')).map(el => ({
+                tag: el.tagName.toLowerCase(),
+                type: el.getAttribute('type') || '',
+                name: el.getAttribute('name') || '',
+                id: el.id || '',
+                label: labelFor(el),
+                placeholder: el.getAttribute('placeholder') || '',
+                value: el.value || '',
+                required: !!el.required || el.getAttribute('aria-required') === 'true',
+                disabled: !!el.disabled,
+                readonly: !!el.readOnly,
+                selector: cssPath(el),
+                options: el.tagName.toLowerCase() === 'select' ? Array.from(el.options).map(o => ({value: o.value, text: o.text})) : []
+              }));
+              const buttons = Array.from(document.querySelectorAll('button, input[type=button], input[type=submit], a.btn, .btn')).map(el => ({
+                text: visibleText(el), tag: el.tagName.toLowerCase(), type: el.getAttribute('type') || '', href: el.getAttribute('href') || '', selector: cssPath(el)
+              }));
+              const links = Array.from(document.querySelectorAll('a')).slice(0, 800).map(el => ({text: visibleText(el), href: el.href || '', selector: cssPath(el)}));
+              const tables = Array.from(document.querySelectorAll('table')).map((table, idx) => ({
+                index: idx, headers: Array.from(table.querySelectorAll('th')).map(th => th.innerText.trim()), rows: table.querySelectorAll('tr').length, selector: cssPath(table)
+              }));
+              return {fields, buttons, links, tables};
+            }
+            """
+        )
+        return DiscoverySnapshot(
+            url=frame.url,
+            title=f"frame_{frame_index}",
+            captured_at=datetime.now().isoformat(timespec="seconds"),
+            fields=data["fields"],
+            buttons=data["buttons"],
+            links=data["links"],
+            tables=data["tables"],
+            dropdowns=[],
+        )
 
     async def _extract_snapshot(self, page) -> DiscoverySnapshot:
         data = await page.evaluate(
@@ -250,7 +347,7 @@ class OutSmartBrowserDiscovery:
         cleaned = re.sub(r"[^A-Za-z0-9._-]+", "_", value or "page").strip("._")
         return cleaned[:60] or "page"
 
-    def _summary(self, snapshot: DiscoverySnapshot) -> str:
+    def _summary(self, snapshot: DiscoverySnapshot, frame_snapshots: Optional[List[Dict[str, object]]] = None) -> str:
         lines = [
             "# OutSmart Browser Discovery Snapshot",
             "",
@@ -263,11 +360,15 @@ class OutSmartBrowserDiscovery:
             f"Links: {len(snapshot.links)}",
             f"Tables: {len(snapshot.tables)}",
             f"Dropdown captures: {len(snapshot.dropdowns)}",
+            f"Frames: {len(frame_snapshots or [])}",
             "",
             "## Fields",
         ]
         for field in snapshot.fields[:200]:
             lines.append(f"- {field.get('label') or field.get('name') or field.get('id') or field.get('placeholder')} | {field.get('tag')} | {field.get('type')} | required={field.get('required')}")
+        lines.extend(["", "## Frames"])
+        for frame in frame_snapshots or []:
+            lines.append(f"- {frame.get('title')} | {frame.get('url')} | fields={len(frame.get('fields') or [])} | tables={len(frame.get('tables') or [])}")
         lines.extend(["", "## Dropdowns"])
         for dropdown in snapshot.dropdowns:
             lines.append(f"- {dropdown.get('trigger_text')} -> {len(dropdown.get('options', []))} options")

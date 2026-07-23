@@ -102,3 +102,10 @@
 [X] Attach-modus voor bestaande Chrome via remote debugging
 [X] Tabselectie met tabs/nummer/ENTER in terminal
 
+## v2.8.3 toegevoegd
+
+[X] OutSmart discovery ZIP-analyse voor gescrapete browserdata
+[X] Rapportage van schermdekking, velden, tabellen en dropdowns
+[X] Discovery-tool uitgebreid om bij nieuwe scans ook iframe/frame-inhoud op te slaan
+[X] Analyse toont nu expliciet of bestaande werkbonnen, formulieren, bijlagen en dropdowns voldoende gecapteerd zijn
+
